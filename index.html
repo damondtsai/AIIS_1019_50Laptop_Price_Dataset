@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laptop Price Dataset 筆電價格預測與特徵選擇互動分析儀表板</title>
+    <meta name="description" content="基於 1,303 筆筆電規格數據之多元線性迴歸與特徵選擇完整專案：ANOVA F-test、RFE、LassoCV、逐步特徵評估、5-fold 交叉驗證與即時筆電價格預測器。">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+    <!-- Custom CSS (相對路徑，相容 GitHub Pages 子路徑) -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="container">
+        <!-- 頁首與導覽 (Header & Navigation) -->
+        <header class="navbar">
+            <a href="#" class="nav-brand">
+                <div class="brand-logo">💻</div>
+                <div class="brand-text">
+                    <h1>Laptop Price 筆電價格預測</h1>
+                    <p>多元線性迴歸 · 特徵選擇 · 即時推論儀表板</p>
+                </div>
+            </a>
+            <ul class="nav-links">
+                <li><a href="#section-overview" class="active">專案概覽</a></li>
+                <li><a href="#section-kpis">核心指標</a></li>
+                <li><a href="#section-engineering">特徵工程</a></li>
+                <li><a href="#section-stepwise">特徵評估趨勢</a></li>
+                <li><a href="#section-methods">三種特徵選擇</a></li>
+                <li><a href="#section-predictor">即時價格預測</a></li>
+                <li><a href="#section-residuals">散點與殘差</a></li>
+                <li><a href="#section-crisp">CRISP-DM 流程</a></li>
+                <li>
+                    <a href="https://github.com/damondtsai/AIIS_1019_50Laptop_Price_Dataset" target="_blank" rel="noopener noreferrer" class="external-link">
+                        GitHub 儲存庫 ↗
+                    </a>
+                </li>
+            </ul>
+        </header>
+
+        <!-- 英雄區 (Hero Section) -->
+        <section id="section-overview" class="hero-section">
+            <span class="hero-badge">CRISP-DM · 機器學習特徵選擇完整工作流</span>
+            <h2 class="hero-title">Laptop Price Dataset <span>筆電價格預測與特徵選擇</span></h2>
+            <p class="hero-subtitle">
+                探討全球市場 <strong>1,303 筆筆電硬體規格</strong>（包含品牌、筆電型態、螢幕尺寸、PPI 解析度像素密度、IPS/觸控螢幕、處理器時脈與系列、獨立/整合顯示卡、RAM、SSD/HDD 儲存配置與作業系統）如何共同影響終端售價 <strong>Price_euros (€)</strong>。
+                專案落實嚴謹的資料科學標準：先以 80/20 固定切分訓練與測試集，罕見品牌合併與 One-Hot Encoding 規則純粹從訓練集提取，並在 5-Fold 交叉驗證 Pipeline 內部執行特徵選擇，杜絕資料洩漏 (Data Leakage)。
+            </p>
+            <div class="hero-source-links">
+                <a href="https://raw.githubusercontent.com/MainakRepositor/Datasets/master/laptop_price.csv" target="_blank" rel="noopener noreferrer" class="chip-link">
+                    📄 原始資料集 CSV (1,303 筆)
+                </a>
+                <a href="https://github.com/MainakRepositor/Datasets/blob/master/laptop_price.csv" target="_blank" rel="noopener noreferrer" class="chip-link">
+                    🔗 資料集來源 GitHub
+                </a>
+                <a href="https://github.com/damondtsai/AIIS_1019_50Laptop_Price_Dataset" target="_blank" rel="noopener noreferrer" class="chip-link">
+                    💻 本專案 GitHub Repo
+                </a>
+            </div>
+        </section>
+
+        <!-- 摘要指標卡 (KPI Cards) -->
+        <section id="section-kpis" class="grid-4">
+            <div class="kpi-card highlight-blue">
+                <span class="kpi-title">總資料筆數 (Total Samples)</span>
+                <div class="kpi-num" id="kpiTotalSamples">1,303 筆</div>
+                <div class="kpi-source" id="kpiTotalSamplesSub">訓練集 1,042 筆 · 測試集 261 筆 (80/20 切分)</div>
+            </div>
+            <div class="kpi-card">
+                <span class="kpi-title">原始欄位數 (Raw Columns)</span>
+                <div class="kpi-num" id="kpiRawFeatures">13 欄</div>
+                <div class="kpi-source" id="kpiRawFeaturesSub">排除 ID 識別碼與高基數型號欄</div>
+            </div>
+            <div class="kpi-card highlight-purple">
+                <span class="kpi-title">One-Hot 編碼特徵數 (Encoded)</span>
+                <div class="kpi-num" id="kpiEncodedFeatures">38 個</div>
+                <div class="kpi-source" id="kpiEncodedFeaturesSub">9 數值特徵 + 29 類別虛擬特徵</div>
+            </div>
+            <div class="kpi-card highlight-green">
+                <span class="kpi-title">交叉驗證選定最佳模型 (CV Best)</span>
+                <div class="kpi-num" id="kpiCvBest" style="color: #34d399;">k=23</div>
+                <div class="kpi-source" id="kpiCvBestSub">5-Fold CV 訓練集 RMSE: €340.71</div>
+            </div>
+        </section>
+
+        <!-- 額外測試效能指標橫條 -->
+        <section class="grid-2" style="margin-bottom: 28px;">
+            <div class="kpi-card" style="border-left: 4px solid #38bdf8;">
+                <span class="kpi-title">測試集最終 RMSE 與 MAE (Hold-out Test Error)</span>
+                <div class="kpi-num" id="kpiTestRmse" style="color: #38bdf8;">€355.57</div>
+                <div class="kpi-source" id="kpiTestRmseSub">平均絕對誤差 MAE: €237.99 (獨立測試集 261 筆評估)</div>
+            </div>
+            <div class="kpi-card" style="border-left: 4px solid #a855f7;">
+                <span class="kpi-title">測試集決定係數 (Test R²)</span>
+                <div class="kpi-num" id="kpiTestR2" style="color: #c084fc;">0.7511</div>
+                <div class="kpi-source" id="kpiTestR2Sub">多元線性迴歸模型解釋了測試集 75.1% 的價格變異量</div>
+            </div>
+        </section>
+
+        <!-- 特徵工程與編碼對照表 (Feature Engineering Section) -->
+        <section id="section-engineering" class="card">
+            <div class="card-header">
+                <div>
+                    <h3 class="card-title">
+                        <span class="icon">⚙️</span>
+                        原始欄位 → 特徵工程 → One-Hot Encoding 對照表
+                    </h3>
+                    <p class="card-desc">依據資料特性進行數值萃取、正則表達式解析、高基數評估及防洩漏 One-Hot 編碼機制</p>
+                </div>
+                <span class="badge-optimal">編碼後總特徵數：38 欄位</span>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>原始欄位</th>
+                            <th>欄位角色</th>
+                            <th>特徵工程與前處理規則 (嚴禁資料洩漏)</th>
+                            <th>產生欄位數</th>
+                            <th>模型特徵名稱 (Model Features)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="featureMappingBody">
+                        <!-- JS 動態生成 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Product 欄位評估說明區塊 -->
+            <div style="margin-top: 18px; padding: 16px; background: rgba(245, 158, 11, 0.08); border-left: 4px solid #f59e0b; border-radius: var(--radius-sm); font-size: 13px; line-height: 1.7; color: #fde68a;">
+                <strong>📌 Product 欄位高基數 (High Cardinality) 評估說明：</strong><br>
+                資料集中 <code>Product</code> 欄位在 1,303 筆樣本中包含高達 <strong>618 種獨立型號</strong>（基數比率達 47.4%）。若將其進行 One-Hot 編碼，將引入 600+ 個極度稀疏的二元虛擬變數，在訓練樣本僅 1,042 筆的情況下，會導致維度災難 (Curse of Dimensionality)、矩陣奇異性與嚴重的過擬合 (Overfitting)。由於筆電的實質效能與成本皆已由 CPU、GPU、RAM、SSD/HDD、螢幕等具體規格完整體現，因此我們依據統計學習原則將 <code>Product</code> 排除於多元線性迴歸特徵外，確保模型之強健性與泛化能力。
+            </div>
+        </section>
+
+        <!-- 特徵數量逐步評估折線圖與完整表格 (Stepwise Section) -->
+        <section id="section-stepwise" class="card">
+            <div class="card-header">
+                <div>
+                    <h3 class="card-title">
+                        <span class="icon">📈</span>
+                        特徵數量評估趨勢圖 (Features vs. Performance)
+                    </h3>
+                    <p class="card-desc">依據 ANOVA 統計顯著性依序加入特徵 (k=1 至 k=25)，於 5-Fold 交叉驗證內部進行特徵挑選</p>
+                </div>
+                <span class="badge-optimal">⭐ 交叉驗證最佳：k=23 (CV RMSE: €340.71)</span>
+            </div>
+
+            <!-- 雙折線圖 -->
+            <div class="chart-box" style="margin-bottom: 24px;">
+                <h4 class="chart-title">特徵數量 vs. RMSE 與 R² 評估趨勢</h4>
+                <div class="chart-container">
+                    <canvas id="stepwiseChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 說明標語 -->
+            <div style="margin-bottom: 18px; padding: 14px 18px; background: rgba(16, 185, 129, 0.08); border-left: 4px solid var(--emerald-accent); border-radius: var(--radius-sm); font-size: 13px; color: #a7f3d0; line-height: 1.6;">
+                <strong>🔍 交叉驗證 (CV) 選定模型 vs. 單次測試集最低點之方法學區分：</strong><br>
+                由圖表可見，訓練集 5-Fold 交叉驗證在 <strong>k=23</strong> 時取得最小 RMSE (€340.71)。而在單次 20% 測試集切分中，k=24 達到最低測試 RMSE (€355.42，兩者僅差 €0.15)。在機器學習規範中，<strong>最終模型超參數與特徵數必須以交叉驗證為唯一準則</strong>；測試集只作為客觀最終驗證，不可反向用來挑選模型特徵數，以避免測試集過擬合。
+            </div>
+
+            <!-- 詳細逐步表格 -->
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>特徵數量 (k)</th>
+                            <th>最新加入特徵與選取欄位</th>
+                            <th>5-Fold CV 訓練 RMSE (€)</th>
+                            <th>測試集 RMSE (€)</th>
+                            <th>測試集 MAE (€)</th>
+                            <th>測試集 R² 決定係數</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stepwiseTableBody">
+                        <!-- JS 動態生成 -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 三種特徵選擇方法切換區 (ANOVA, RFE, LassoCV) -->
+        <section id="section-methods" class="card">
+            <div class="card-header">
+                <div>
+                    <h3 class="card-title">
+                        <span class="icon">🔬</span>
+                        三種特徵選擇方法對比 (ANOVA · RFE · LassoCV)
+                    </h3>
+                    <p class="card-desc">Python 實際運算輸出；RFE 與 LassoCV 均嚴格實施標準化縮放 (StandardScaler)</p>
+                </div>
+            </div>
+
+            <!-- 頁籤導覽 -->
+            <div class="tab-nav">
+                <button class="tab-btn active" data-tab="tab-anova">
+                    <span>📊</span> 1. ANOVA F-test 單變數檢定
+                </button>
+                <button class="tab-btn" data-tab="tab-rfe">
+                    <span>🔄</span> 2. RFE 遞迴特徵消除
+                </button>
+                <button class="tab-btn" data-tab="tab-lasso">
+                    <span>📉</span> 3. LassoCV L1 正則化篩選
+                </button>
+            </div>
+
+            <!-- Tab 1: ANOVA -->
+            <div id="tab-anova" class="tab-content active">
+                <div class="method-intro">
+                    <strong>ANOVA F-test 特徵選擇原理：</strong><br>
+                    透過單因子變異數分析 (One-way ANOVA) 計算各個候選特徵與筆電售價 <code>Price_euros</code> 的單變數線性關聯強度。F 值越高且 p-value 越小，表示該特徵在未考慮其他變數情況下的單獨預測力越強。<br>
+                    <span style="color: #38bdf8;">優點：運算速度極快、直觀易懂；局限：無法偵測特徵間的多元共線性 (Multicollinearity) 與組合協同效應。</span>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>特徵名稱</th>
+                                <th>F 檢定統計值 (F-Score)</th>
+                                <th>顯著性 p-value</th>
+                                <th>白話解說與特徵意涵</th>
+                            </tr>
+                        </thead>
+                        <tbody id="anovaTableBody">
+                            <!-- JS 動態生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 2: RFE -->
+            <div id="tab-rfe" class="tab-content">
+                <div class="method-intro">
+                    <strong>RFE (Recursive Feature Elimination) 原理：</strong><br>
+                    以標準化後的多元線性迴歸作為基礎估計器 (Estimator)，在每次迴圈中擬合模型，並逐步剔除權重絕對值最小的特徵，遞迴運算直至特徵排序完成。<br>
+                    <span style="color: #34d399;">特徵觀察：RFE 能兼顧變數間的多元相關性。例如 Notebook 與 Workstation 型號能大幅區分一般平價機與高階工作站，因此在 RFE 中排名顯著提高。</span>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>保留優先順序</th>
+                                <th>特徵名稱</th>
+                                <th>RFE 評定等級</th>
+                                <th>多元協同效應說明</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rfeTableBody">
+                            <!-- JS 動態生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tab 3: LassoCV -->
+            <div id="tab-lasso" class="tab-content">
+                <div class="method-intro">
+                    <strong>LassoCV (L1 Regularization) 特徵稀疏化原理：</strong><br>
+                    在標準化特徵矩陣上加入 L1 懲罰項 $\alpha \sum |\beta_j|$，透過 5-Fold 交叉驗證自動搜尋最佳懲罰參數 <span id="lassoAlphaVal" style="color:#38bdf8; font-weight:700;">α</span>。Lasso 的幾何特性會將冗餘或貢獻微弱的特徵係數直接收縮歸零，自然達成特徵挑選。<br>
+                    <span style="color: #c084fc;">方法差異體會：三種方法中，ANOVA 偏好單變數相關強者（RAM、SSD），RFE 著眼消除互補殘差，Lasso 則直接懲罰多餘的虛擬類別變數，忠實呈現各方法的統計本質差異。</span>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>特徵名稱</th>
+                                <th>標準化迴歸係數 (β)</th>
+                                <th>係數絕對值 |β|</th>
+                                <th>篩選狀態</th>
+                                <th>白話解說</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lassoTableBody">
+                            <!-- JS 動態生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 即時筆電價格預測器 (Real-time Predictor) -->
+        <section id="section-predictor" class="card">
+            <div class="card-header">
+                <div>
+                    <h3 class="card-title">
+                        <span class="icon">⚡</span>
+                        即時筆電價格預測器 (Real-time Estimator)
+                    </h3>
+                    <p class="card-desc">前端直接套用 Python 訓練完成之 k=23 線性模型參數，無須伺服器即可毫秒級即時估價</p>
+                </div>
+                <span class="badge-optimal">單位：歐元 (€) 與新台幣 (NT$)</span>
+            </div>
+
+            <!-- 快速預設範本 -->
+            <div style="margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--text-muted);">
+                ⚡ 快速載入典型配置範本：
+            </div>
+            <div class="presets-container">
+                <button class="preset-chip" data-preset="ultrabook">💻 輕薄文書本 (Ultrabook - Apple/Asus)</button>
+                <button class="preset-chip" data-preset="gaming">🎮 旗艦電競筆電 (Gaming - MSI/Nvidia)</button>
+                <button class="preset-chip" data-preset="workstation">🏢 專業行動工作站 (Workstation - Dell)</button>
+                <button class="preset-chip" data-preset="budget">🎒 超值學生入門機 (Budget - Acer)</button>
+            </div>
+
+            <div class="predictor-wrapper">
+                <!-- 輸入表單 -->
+                <div class="form-container">
+                    <div class="form-grid">
+                        <!-- 品牌 -->
+                        <div class="form-group">
+                            <label class="form-label" for="predCompany">筆電品牌 (Company)</label>
+                            <select id="predCompany" class="form-control predictor-input">
+                                <option value="Dell">Dell</option>
+                                <option value="Lenovo">Lenovo</option>
+                                <option value="HP">HP</option>
+                                <option value="Asus">Asus</option>
+                                <option value="Acer">Acer</option>
+                                <option value="MSI">MSI</option>
+                                <option value="Toshiba">Toshiba</option>
+                                <option value="Apple">Apple</option>
+                                <option value="Other">其他品牌 (Other)</option>
+                            </select>
+                        </div>
+
+                        <!-- 類型 -->
+                        <div class="form-group">
+                            <label class="form-label" for="predTypeName">筆電類型 (TypeName)</label>
+                            <select id="predTypeName" class="form-control predictor-input">
+                                <option value="Notebook">標準筆記型 (Notebook)</option>
+                                <option value="Gaming">電競機種 (Gaming)</option>
+                                <option value="Ultrabook">輕薄旗艦 (Ultrabook)</option>
+                                <option value="2 in 1 Convertible">翻轉觸控二合一 (2 in 1)</option>
+                                <option value="Workstation">高階工作站 (Workstation)</option>
+                                <option value="Netbook">迷你小筆電 (Netbook)</option>
+                            </select>
+                        </div>
+
+                        <!-- 螢幕尺寸 -->
+                        <div class="form-group">
+                            <label class="form-label" for="predInches">
+                                螢幕尺寸 (Inches)
+                                <span class="value-hint" id="hintInches">15.6"</span>
+                            </label>
+                            <input type="range" id="predInches" class="form-control predictor-input" min="11.6" max="17.3" step="0.1" value="15.6">
+                        </div>
+
+                        <!-- 螢幕解析度 -->
+                        <div class="form-group">
+                            <label class="form-label" for="predResolution">
+                                解析度 (Resolution)
+                                <span class="value-hint" id="hintPpi">141.2 PPI</span>
+                            </label>
+                            <select id="predResolution" class="form-control predictor-input">
+                                <option value="1366x768">1366x768 (HD 普通解析度)</option>
+                                <option value="1920x1080" selected>1920x1080 (Full HD 主流螢幕)</option>
+                                <option value="2560x1440">2560x1440 (2K / QHD 高清螢幕)</option>
+                                <option value="3840x2160">3840x2160 (4K UHD 頂級螢幕)</option>
+                            </select>
+                        </div>
+
+                        <!-- 觸控與 IPS -->
+                        <div class="form-group">
+                            <label class="form-label">觸控螢幕支援 (Touchscreen)</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="predTouch" value="0" checked class="predictor-input"> 無觸控
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="predTouch" value="1" class="predictor-input"> 支援觸控
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">面板類型 (IPS Panel)</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="predIps" value="0" class="predictor-input"> 一般面板
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="predIps" value="1" checked class="predictor-input"> IPS 廣視角
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- RAM -->
+                        <div class="form-group">
+                            <label class="form-label" for="predRam">主記憶體 (RAM GB)</label>
+                            <select id="predRam" class="form-control predictor-input">
+                                <option value="4">4 GB (入門文書)</option>
+                                <option value="8" selected>8 GB (主流日常)</option>
+                                <option value="16">16 GB (專業多工/遊戲)</option>
+                                <option value="32">32 GB (影音創作/重度運算)</option>
+                                <option value="64">64 GB (頂級工作站)</option>
+                            </select>
+                        </div>
+
+                        <!-- 重量 -->
+                        <div class="form-group">
+                            <label class="form-label" for="predWeight">
+                                機身重量 (Weight kg)
+                                <span class="value-hint" id="hintWeight">2.0 kg</span>
+                            </label>
+                            <input type="range" id="predWeight" class="form-control predictor-input" min="0.8" max="4.5" step="0.05" value="2.0">
+                        </div>
+
+                        <!-- 處理器類型 -->
+                        <div class="form-group">
+                            <label class="form-label" for="predCpuType">處理器系列 (CPU Type)</label>
+                            <select id="predCpuType" class="form-control predictor-input">
+                                <option value="Intel Core i7" selected>Intel Core i7 (高階效能)</option>
+                                <option value="Intel Core i5">Intel Core i5 (主流平衡)</option>
+                                <option value="Intel Core i3">Intel Core i3 (超值實用)</option>
+                                <option value="AMD">AMD 系列處理器</option>
+                                <option value="Other Intel">其他 Intel (Celeron/Pentium 等)</option>
+                            </select>
+                        </div>
+
+                        <!-- 處理器時脈 -->
+                        <div class="form-group">
+                            <label class="form-label" for="predCpuSpeed">
+                                處理器時脈 (CPU Speed)
+                                <span class="value-hint" id="hintCpuSpeed">2.5 GHz</span>
+                            </label>
+                            <input type="range" id="predCpuSpeed" class="form-control predictor-input" min="1.1" max="3.6" step="0.1" value="2.5">
+                        </div>
+
+                        <!-- SSD 與 HDD -->
+                        <div class="form-group">
+                            <label class="form-label" for="predSsd">高速固態硬碟 (SSD GB)</label>
+                            <select id="predSsd" class="form-control predictor-input">
+                                <option value="0">無 SSD</option>
+                                <option value="128">128 GB SSD</option>
+                                <option value="256" selected>256 GB SSD (主流)</option>
+                                <option value="512">512 GB SSD (高速大容量)</option>
+                                <option value="1024">1,024 GB (1 TB SSD)</option>
+                                <option value="2048">2,048 GB (2 TB SSD)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="predHdd">傳統機械硬碟 (HDD GB)</label>
+                            <select id="predHdd" class="form-control predictor-input">
+                                <option value="0" selected>無 HDD (純 SSD)</option>
+                                <option value="500">500 GB HDD</option>
+                                <option value="1000">1,000 GB (1 TB HDD)</option>
+                                <option value="2000">2,000 GB (2 TB HDD)</option>
+                            </select>
+                        </div>
+
+                        <!-- 顯示卡品牌 -->
+                        <div class="form-group">
+                            <label class="form-label" for="predGpuBrand">顯示卡核心 (GPU Brand)</label>
+                            <select id="predGpuBrand" class="form-control predictor-input">
+                                <option value="Intel" selected>Intel 內建顯示晶片 (文書省電)</option>
+                                <option value="Nvidia">Nvidia 獨立顯示卡 (遊戲繪圖)</option>
+                                <option value="AMD">AMD 顯示晶片</option>
+                                <option value="Other">其他顯示核心</option>
+                            </select>
+                        </div>
+
+                        <!-- 作業系統 -->
+                        <div class="form-group">
+                            <label class="form-label" for="predOpSys">出廠作業系統 (OpSys)</label>
+                            <select id="predOpSys" class="form-control predictor-input">
+                                <option value="Windows" selected>Windows 系統 (Win 10/11/7)</option>
+                                <option value="macOS">macOS 蘋果系統</option>
+                                <option value="Linux">Linux 開源系統</option>
+                                <option value="Chrome OS">Chrome OS 雲端筆電</option>
+                                <option value="No OS / Other">無系統 (No OS) / 其他</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 預測結果顯示面板 -->
+                <div class="prediction-result-card">
+                    <span class="result-badge">⚡ 多元線性迴歸即時估算</span>
+                    
+                    <div class="price-main">
+                        <div>
+                            <span class="price-unit">€</span>
+                            <span class="price-value" id="predictedPrice">--</span>
+                        </div>
+                        <div class="price-twd" id="predictedPriceTwd">約合 NT$ --</div>
+                    </div>
+
+                    <div class="result-details">
+                        <div class="detail-row">
+                            <span>使用模型</span>
+                            <strong>LinearRegression (k=23 CV最佳)</strong>
+                        </div>
+                        <div class="detail-row">
+                            <span>基準截距 (Intercept)</span>
+                            <strong style="color:#94a3b8;">-€659.74</strong>
+                        </div>
+                        <div class="detail-row" style="margin-top: 6px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 6px;">
+                            <span>主要正向加分規格：</span>
+                        </div>
+                        <ul id="topPosDrivers" style="list-style:none; padding-left:0; margin:4px 0 8px; font-size:11px; color:#cbd5e1;"></ul>
+                        
+                        <div class="detail-row" style="border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 6px;">
+                            <span>主要折價扣分特徵：</span>
+                        </div>
+                        <ul id="topNegDrivers" style="list-style:none; padding-left:0; margin:4px 0 0; font-size:11px; color:#cbd5e1;"></ul>
+                    </div>
+
+                    <div id="predWarning" class="warning-banner"></div>
+
+                    <p class="disclaimer-text">
+                        🔔 本估價模型基於歷史公開筆電規格資料集（2017-2018）構建，旨在展示統計特徵貢獻度與機器學習回歸分析流程，預測價格僅供學術教學參考，不得作為即時現行市場報價依據。
+                    </p>
+                </div>
+            </div>
+
+            <!-- 10 筆測試樣本對比驗證區 -->
+            <div style="margin-top: 36px; border-top: 1px solid var(--border-color); padding-top: 24px;">
+                <h4 style="font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 8px;">
+                    🎯 測試集真實樣本 10 筆比對驗證 (Python vs. JavaScript 預測一致性測試)
+                </h4>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+                    點擊「套用至預測器」可將真實歷史筆電配置自動帶入上方預測器，驗證 JavaScript 即時運算結果與 Python Scikit-Learn 預測值之絕對一致性（除小數取整外完全吻合）。
+                </p>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>樣本 ID</th>
+                                <th>廠牌與產品名稱</th>
+                                <th>類型</th>
+                                <th>核心規格 (RAM/儲存)</th>
+                                <th>歷史真實售價 (€)</th>
+                                <th>Python 預測價 (€)</th>
+                                <th>JavaScript 預測價 (€)</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="verificationTableBody">
+                            <!-- JS 動態生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- 散點圖與殘差分析 (Scatter & Residuals Section) -->
+        <section id="section-residuals" class="card">
+            <div class="card-header">
+                <div>
+                    <h3 class="card-title">
+                        <span class="icon">📊</span>
+                        模型預測診斷：實際值 vs. 預測值散點圖與殘差分佈
+                    </h3>
+                    <p class="card-desc">評估測試集 261 筆樣本之擬合品質與誤差常態性分佈</p>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <!-- 散點圖 -->
+                <div class="chart-box">
+                    <h4 class="chart-title">實際售價 vs. 模型預測售價 (對角線 y = x)</h4>
+                    <div class="chart-container">
+                        <canvas id="scatterChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 殘差直方圖 -->
+                <div class="chart-box">
+                    <h4 class="chart-title">預測殘差分佈區間 (Residuals: Actual - Predicted)</h4>
+                    <div class="chart-container">
+                        <canvas id="residualChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CRISP-DM 流程說明與方法學 (CRISP-DM Section) -->
+        <section id="section-crisp" class="card">
+            <div class="card-header">
+                <div>
+                    <h3 class="card-title">
+                        <span class="icon">🧭</span>
+                        CRISP-DM 跨行業資料探勘標準流程實踐
+                    </h3>
+                    <p class="card-desc">依循標準資料科學方法學，從商業理解到靜態無伺服器架構部署</p>
+                </div>
+            </div>
+
+            <div class="grid-3">
+                <div class="crisp-step">
+                    <span class="crisp-num">1</span>
+                    <h4>商業與問題理解 (Business Understanding)</h4>
+                    <p>
+                        在消費性電子市場中，筆電定價深受 CPU 世代、RAM、SSD 容量及螢幕規格等複雜硬體配置之影響。建立透明、可解釋且無黑箱的線性價格基準模型，有助於評估硬體零件的實質溢價與邊際成本。
+                    </p>
+                </div>
+
+                <div class="crisp-step">
+                    <span class="crisp-num">2</span>
+                    <h4>資料理解 (Data Understanding)</h4>
+                    <p>
+                        載入 1,303 筆筆電紀錄，欄位涵蓋識別碼、品牌、型號、外型、尺寸、解析度、CPU、記憶體、硬碟、顯示卡、系統、重量與售價。確認全表無缺失值，數值分佈涵蓋 €174 至 €6,099，具備高度代表性。
+                    </p>
+                </div>
+
+                <div class="crisp-step">
+                    <span class="crisp-num">3</span>
+                    <h4>資料準備與特徵工程 (Data Preparation)</h4>
+                    <p>
+                        以 80/20 固定切分 (random_state=42)；正則解析 CPU 時脈、記憶體 SSD/HDD 容量、螢幕 PPI 像素密度；僅依訓練集品牌頻率決定稀有類別合併，配合 OneHotEncoder(handle_unknown='ignore')，杜絕任何資料外洩。
+                    </p>
+                </div>
+
+                <div class="crisp-step">
+                    <span class="crisp-num">4</span>
+                    <h4>建模與特徵挑選 (Modeling)</h4>
+                    <p>
+                        透過 ANOVA F-test、RFE 及 LassoCV 三種角度剖析特徵顯著性；在 5-Fold 交叉驗證 Pipeline 內逐一評估特徵子集 (k=1~25)，找出泛化誤差最小之特徵組合。
+                    </p>
+                </div>
+
+                <div class="crisp-step">
+                    <span class="crisp-num">5</span>
+                    <h4>模型評估 (Evaluation)</h4>
+                    <p>
+                        訓練集 5-Fold CV 選定最佳特徵數 k=23 (CV RMSE €340.71)。在從未參與訓練的測試集上取得 RMSE €355.57、MAE €237.99 與 R² 0.7511，確認無過擬合現象並具備穩定的預測能力。
+                    </p>
+                </div>
+
+                <div class="crisp-step">
+                    <span class="crisp-num">6</span>
+                    <h4>靜態部署與即時推論 (Deployment)</h4>
+                    <p>
+                        將訓練完成之模型截距、係數矩陣與數值範圍輸出為標準 JSON，由純前端 JavaScript 在瀏覽器端即時計算線性方程，相容 GitHub Pages 無伺服器靜態架構，達成零延遲推論。
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 頁尾 (Footer) -->
+        <footer>
+            <p>
+                專案名稱：<strong>Laptop Price Dataset 筆電價格預測與特徵選擇互動分析儀表板</strong> ·
+                使用技術：Python (Scikit-Learn, Pandas) + HTML5 / Vanilla CSS / JavaScript (Chart.js)
+            </p>
+            <p style="margin-top: 6px;">
+                資料集來源：<a href="https://raw.githubusercontent.com/MainakRepositor/Datasets/master/laptop_price.csv" target="_blank" rel="noopener noreferrer">Laptop Price Dataset (MainakRepositor)</a> ·
+                GitHub 專案倉庫：<a href="https://github.com/damondtsai/AIIS_1019_50Laptop_Price_Dataset" target="_blank" rel="noopener noreferrer">damondtsai/AIIS_1019_50Laptop_Price_Dataset</a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Custom Script (使用相對路徑，相容 GitHub Pages 子路徑) -->
+    <script src="js/main.js"></script>
+</body>
+</html>

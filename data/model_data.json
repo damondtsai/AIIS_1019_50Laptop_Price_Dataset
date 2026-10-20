@@ -1,0 +1,200 @@
+{
+  "model_name": "Scikit-Learn LinearRegression (CV Selected)",
+  "best_k": 23,
+  "intercept": -659.7427707501361,
+  "coefficients": {
+    "Ram_GB": 45.41363297351137,
+    "Weight_kg": 184.38014064401972,
+    "PPI": 2.5249855533487806,
+    "Cpu_Speed_GHz": 188.68708215091482,
+    "SSD_GB": 0.7692795818717679,
+    "Touchscreen": 12.177839858084072,
+    "IPS": 29.341138781773328,
+    "Company_Clean_Acer": -171.0197947334694,
+    "Company_Clean_MSI": 78.21167164287866,
+    "TypeName_Gaming": -18.52929509615447,
+    "TypeName_Notebook": -161.31364838736394,
+    "TypeName_Ultrabook": 155.9170389597676,
+    "TypeName_Workstation": 673.6603328140138,
+    "Cpu_Type_AMD": -242.33967860585727,
+    "Cpu_Type_Intel Core i3": -138.09042572934771,
+    "Cpu_Type_Intel Core i7": 20.998284852932937,
+    "Cpu_Type_Other Intel": -85.97642794202696,
+    "Gpu_Brand_AMD": 161.49820288040078,
+    "Gpu_Brand_Intel": 313.0685714082326,
+    "Gpu_Brand_Nvidia": 230.2432686687031,
+    "OpSys_Clean_Linux": -220.17774821672964,
+    "OpSys_Clean_No OS / Other": -335.3217178603101,
+    "OpSys_Clean_Windows": -81.0170723397151
+  },
+  "final_features": [
+    "Ram_GB",
+    "Weight_kg",
+    "PPI",
+    "Cpu_Speed_GHz",
+    "SSD_GB",
+    "Touchscreen",
+    "IPS",
+    "Company_Clean_Acer",
+    "Company_Clean_MSI",
+    "TypeName_Gaming",
+    "TypeName_Notebook",
+    "TypeName_Ultrabook",
+    "TypeName_Workstation",
+    "Cpu_Type_AMD",
+    "Cpu_Type_Intel Core i3",
+    "Cpu_Type_Intel Core i7",
+    "Cpu_Type_Other Intel",
+    "Gpu_Brand_AMD",
+    "Gpu_Brand_Intel",
+    "Gpu_Brand_Nvidia",
+    "OpSys_Clean_Linux",
+    "OpSys_Clean_No OS / Other",
+    "OpSys_Clean_Windows"
+  ],
+  "all_feature_names": [
+    "Ram_GB",
+    "Weight_kg",
+    "Inches",
+    "PPI",
+    "Cpu_Speed_GHz",
+    "SSD_GB",
+    "HDD_GB",
+    "Touchscreen",
+    "IPS",
+    "Company_Clean_Acer",
+    "Company_Clean_Apple",
+    "Company_Clean_Asus",
+    "Company_Clean_Dell",
+    "Company_Clean_HP",
+    "Company_Clean_Lenovo",
+    "Company_Clean_MSI",
+    "Company_Clean_Other",
+    "Company_Clean_Toshiba",
+    "TypeName_2 in 1 Convertible",
+    "TypeName_Gaming",
+    "TypeName_Netbook",
+    "TypeName_Notebook",
+    "TypeName_Ultrabook",
+    "TypeName_Workstation",
+    "Cpu_Type_AMD",
+    "Cpu_Type_Intel Core i3",
+    "Cpu_Type_Intel Core i5",
+    "Cpu_Type_Intel Core i7",
+    "Cpu_Type_Other Intel",
+    "Gpu_Brand_AMD",
+    "Gpu_Brand_Intel",
+    "Gpu_Brand_Nvidia",
+    "Gpu_Brand_Other",
+    "OpSys_Clean_Chrome OS",
+    "OpSys_Clean_Linux",
+    "OpSys_Clean_No OS / Other",
+    "OpSys_Clean_Windows",
+    "OpSys_Clean_macOS"
+  ],
+  "top_companies": [
+    "Lenovo",
+    "Dell",
+    "HP",
+    "Asus",
+    "Acer",
+    "MSI",
+    "Toshiba",
+    "Apple"
+  ],
+  "ohe_categories": {
+    "Company_Clean": [
+      "Lenovo",
+      "Dell",
+      "HP",
+      "Asus",
+      "Acer",
+      "MSI",
+      "Toshiba",
+      "Apple",
+      "Other"
+    ],
+    "TypeName": [
+      "Notebook",
+      "Gaming",
+      "Ultrabook",
+      "2 in 1 Convertible",
+      "Netbook",
+      "Workstation"
+    ],
+    "Cpu_Type": [
+      "Intel Core i7",
+      "Intel Core i5",
+      "Intel Core i3",
+      "AMD",
+      "Other Intel"
+    ],
+    "Gpu_Brand": [
+      "Intel",
+      "Nvidia",
+      "AMD",
+      "Other"
+    ],
+    "OpSys_Clean": [
+      "Windows",
+      "macOS",
+      "Linux",
+      "Chrome OS",
+      "No OS / Other"
+    ]
+  },
+  "num_feature_stats": {
+    "Ram_GB": {
+      "min": 2,
+      "max": 64,
+      "default": 8,
+      "step": 2
+    },
+    "Weight_kg": {
+      "min": 0.6,
+      "max": 5.0,
+      "default": 2.0,
+      "step": 0.05
+    },
+    "Inches": {
+      "min": 10.1,
+      "max": 18.4,
+      "default": 15.6,
+      "step": 0.1
+    },
+    "PPI": {
+      "min": 90.0,
+      "max": 360.0,
+      "default": 141.2,
+      "step": 0.1
+    },
+    "Cpu_Speed_GHz": {
+      "min": 0.9,
+      "max": 4.0,
+      "default": 2.5,
+      "step": 0.1
+    },
+    "SSD_GB": {
+      "min": 0,
+      "max": 2048,
+      "default": 256,
+      "step": 128
+    },
+    "HDD_GB": {
+      "min": 0,
+      "max": 2048,
+      "default": 0,
+      "step": 500
+    },
+    "Touchscreen": {
+      "min": 0,
+      "max": 1,
+      "default": 0
+    },
+    "IPS": {
+      "min": 0,
+      "max": 1,
+      "default": 0
+    }
+  }
+}
