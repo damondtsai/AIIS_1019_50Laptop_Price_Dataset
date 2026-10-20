@@ -20,6 +20,22 @@
 <body>
 
     <div class="container">
+        <!-- 最頂部專案切換下拉選單 (Top Project Switcher Bar) -->
+        <div class="top-switcher-bar">
+            <div class="top-switcher-inner">
+                <div class="switcher-meta">
+                    <span class="live-pulse"></span>
+                    <span class="switcher-title">🌐 專案分析儀表板快速切換：</span>
+                </div>
+                <div class="switcher-control">
+                    <select id="topProjectSelect" class="project-dropdown" aria-label="切換專案頁面" onchange="if(this.value) window.location.href=this.value;">
+                        <option value="" selected>💻 Laptop Price 筆電價格預測與特徵選擇 (目前頁面)</option>
+                        <option value="https://damondtsai.github.io/AIIS_1019_50startup/">📈 50 Startups 新創獲利多元線性迴歸預測 (50 Startups Dataset) ↗</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <!-- 頁首與導覽 (Header & Navigation) -->
         <header class="navbar">
             <a href="#" class="nav-brand">
@@ -38,6 +54,13 @@
                 <li><a href="#section-predictor">即時價格預測</a></li>
                 <li><a href="#section-residuals">散點與殘差</a></li>
                 <li><a href="#section-crisp">CRISP-DM 流程</a></li>
+                <li>
+                    <select class="nav-project-dropdown" aria-label="切換頁面" onchange="if(this.value) window.location.href=this.value;">
+                        <option value="" selected>切換專案 ▾</option>
+                        <option value="">💻 筆電價格預測 (目前)</option>
+                        <option value="https://damondtsai.github.io/AIIS_1019_50startup/">📈 50 Startups 預測 ↗</option>
+                    </select>
+                </li>
                 <li>
                     <a href="https://github.com/damondtsai/AIIS_1019_50Laptop_Price_Dataset" target="_blank" rel="noopener noreferrer" class="external-link">
                         GitHub 儲存庫 ↗
